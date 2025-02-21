@@ -153,42 +153,7 @@ function getSearchScore(emote) {
         score += 999;
     }
 
-    if (emote.name == search.value) {
-        score += 1;
-
-        // Prefer official emotes
-        if (emote.creator == "Minecraft") {
-            score += 1;
-        }
-    }
-
-    if (emote.name.toLowerCase() == search.value.toLowerCase()) {
-        score += 1;
-
-        // Prefer official emotes
-        if (emote.creator == "Minecraft") {
-            score += 1;
-        }
-    }
-
-    if (emote.name.startsWith(search.value)) {
-        score += 1;
-
-        // Prefer official emotes
-        if (emote.creator == "Minecraft") {
-            score += 1;
-        }
-    }
-
-    if (emote.name.toLowerCase().startsWith(search.value.toLowerCase())) {
-        score += 1;
-
-        // Prefer official emotes
-        if (emote.creator == "Minecraft") {
-            score += 1;
-        }
-    }
-
+    score += getSearchTextScore(emote.name, emote);
     score += getSearchTextScore(emote.creator, emote);
 
 
@@ -227,6 +192,24 @@ function getSearchTextScore(text, emote) {
     }
 
     if (text.toLowerCase().startsWith(search.value.toLowerCase())) {
+        score += 1;
+
+        // Prefer official emotes
+        if (emote.creator == "Minecraft") {
+            score += 1;
+        }
+    }
+
+    if (text.includes(search.value)) {
+        score += 1;
+
+        // Prefer official emotes
+        if (emote.creator == "Minecraft") {
+            score += 1;
+        }
+    }
+
+    if (text.toLowerCase().includes(search.value.toLowerCase())) {
         score += 1;
 
         // Prefer official emotes
