@@ -1,17 +1,11 @@
+/* global fetch */
 let emotes = {};
 
-window.fetch("https://cdn.jsdelivr.net/gh/GeyserExtras/EmoteExtractor@refs/heads/main/emotes/en_US.json").then((data) => {
-    data.text().then((text) => {
-        buildList(text);
-    });
+fetch("https://cdn.jsdelivr.net/gh/GeyserExtras/EmoteExtractor@refs/heads/main/emotes/en_US.json").then((r) => r.json()).then((data) => {
+    emotes = data;
+    sort();
 });
 
-function buildList(text) {
-    emotes = JSON.parse(text);
-    sort();
-}
-
-let timeoutIDS = [];
 let emoteList = document.getElementById("emote_list");
 
 let descendingBox = document.getElementById("descending");
@@ -26,8 +20,7 @@ sortElem.addEventListener("change", (ev) => {
     if (sortElem.value == "search") {
         search.style.display = "block";
         descendingBox.checked = true;
-    }
-    else {
+    } else {
         search.value = "";
         search.style.display = "none";
         descendingBox.checked = false;
@@ -44,16 +37,7 @@ search.addEventListener("change", (ev) => {
     sort(sortElem.value, descendingBox.checked);
 });
 
-function buildDefault() {
-    var i = 0;
-    Object.keys(emotes).forEach((key) => {
-        i++
-        addEmote(key, emotes[key], i);
-    });
-}
-
 function sort(type, descending) {
-    clearList();
     if (type == null) {
         type = "name";
     }
@@ -63,10 +47,8 @@ function sort(type, descending) {
 
     sortElem.value = type;
 
-    var x = 0;
     let sorted = [];
     Object.keys(emotes).forEach((key) => {
-        x++;
         let emote = emotes[key];
         emote.uuid = key;
 
@@ -74,12 +56,21 @@ function sort(type, descending) {
     });
 
     sorted = sortArray(type, sorted, descending);
+    sorted = sorted.filter((a) => getURLParamsStatus(a))
 
-    timeoutIDS = [];
+    const total = Object.keys(emotes).length;
+    const displayed = sorted.length;
 
-    var i = 0;
-    sorted.filter((a) => getURLParamsStatus(a)).forEach((emote) => {
-        i++;
+    let totalText = "Total Emotes: "
+    if (total !== displayed) {
+        totalText += displayed + " / "
+    }
+    totalText += total;
+
+    document.getElementById("total_emotes").innerText = totalText;
+
+    clearList();
+    sorted.forEach((emote, i) => {
         addEmote(emote.uuid, emote, i);
     });
 }
@@ -155,8 +146,6 @@ function getSearchScore(emote) {
 
     score += getSearchTextScore(emote.name, emote);
     score += getSearchTextScore(emote.creator, emote);
-
-
 
     return score;
 }
@@ -238,67 +227,59 @@ function getRarityAsNumber(rarity) {
     }
 }
 
-
-
 function addEmote(uuid, emote, i) {
     // Copy basic emote placeholder
-    timeoutIDS.push(window.setTimeout(() => {
-        let display = document.getElementById("uuid").cloneNode(true);
+    let display = document.getElementById("uuid").cloneNode(true);
 
-        // This is solely just to get intellisense to function lmao!!
-        if (display instanceof HTMLElement) {
-            display.classList.add("rarity_" + emote.rarity);
+    // This is solely just to get intellisense to function lmao!!
+    if (display instanceof HTMLElement) {
+        display.classList.add("rarity_" + emote.rarity);
 
-            display.querySelector(".emote_image").src = emote.thumbnail;
-            display.querySelector(".emote_name").innerText = emote.name;
-            display.querySelector(".emote_creator").innerText = "👤 " + emote.creator;
-            display.querySelector(".emote_price").innerText = emote.price == 0 ? "FREE" : (emote.price == undefined ? "???" : emote.price);
-            display.querySelector(".emote_uuid").innerText = "UUID: " + uuid;
+        display.querySelector(".emote_image").src = emote.thumbnail;
+        display.querySelector(".emote_name").innerText = emote.name;
+        display.querySelector(".emote_creator").innerHTML = "&#x1F464; " + emote.creator;
+        display.querySelector(".emote_price").innerText = emote.price == 0 ? "FREE" : (emote.price == undefined ? "???" : emote.price);
+        display.querySelector(".emote_uuid").innerText = "UUID: " + uuid;
 
-            display.addEventListener("mouseover", (ev) => {
-                display.querySelector(".emote_overlay").classList.add("blur_overlay");
-                display.querySelector(".clipboard").innerText = "🗐";
-                display.querySelector(".copy_text").innerText = "Copy UUID";
+        display.addEventListener("mouseover", (ev) => {
+            display.querySelector(".emote_overlay").classList.add("blur_overlay");
+            display.querySelector(".clipboard").innerHTML = "&#x1f5d0;";
+            display.querySelector(".copy_text").innerText = "Copy UUID";
+        });
+        display.addEventListener("mouseout", (ev) => {
+            display.querySelector(".emote_overlay").classList.remove("blur_overlay");
+        });
+
+
+        display.addEventListener("click", (ev) => {
+            display.querySelector(".emote_overlay").classList.add("blur_overlay");
+
+            let promise = navigator.clipboard.writeText(uuid);
+            promise.catch((error) => {
+                display.querySelector(".clipboard").innerHTML = "&#x274e;";
+                display.querySelector(".copy_text").innerText = "Error!";
+                console.log(error);
             });
-            display.addEventListener("mouseout", (ev) => {
-                display.querySelector(".emote_overlay").classList.remove("blur_overlay");
+            promise.then(() => {
+                display.querySelector(".clipboard").innerHTML = "&#x2705;";
+                display.querySelector(".copy_text").innerText = "Copied UUID!";
+                window.setTimeout(() => {
+                    display.querySelector(".emote_overlay").classList.remove("blur_overlay");
+                }, 350);
             });
+        });
 
+        display.addEventListener("contextmenu", (ev) => {
+            ev.preventDefault();
+            window.location.href = "minecraft://showDressingRoomOffer?offerID=" + uuid + "/"
+        })
 
-            display.addEventListener("click", (ev) => {
-                display.querySelector(".emote_overlay").classList.add("blur_overlay");
+        emoteList.appendChild(display);
 
-                let promise = navigator.clipboard.writeText(uuid);
-                promise.catch((error) => {
-                    display.querySelector(".clipboard").innerText = "❎";
-                    display.querySelector(".copy_text").innerText = "Error!";
-                    console.log(error);
-                });
-                promise.then(() => {
-                    display.querySelector(".clipboard").innerText = "✅";
-                    display.querySelector(".copy_text").innerText = "Copied UUID!";
-                    window.setTimeout(() => {
-                        display.querySelector(".emote_overlay").classList.remove("blur_overlay");
-                    }, 350);
-                });
-            });
-
-            display.addEventListener("contextmenu", (ev) => {
-                ev.preventDefault();
-                window.location.href = "minecraft://showDressingRoomOffer?offerID=" + uuid + "/"
-            })
-
-            emoteList.appendChild(display);
-
-            display.id = uuid;
-        }
-        document.getElementById("total_emotes").innerText = "Total Emotes: " + timeoutIDS.length;
-    }, 100 * Math.floor(i / 10)));
+        display.id = uuid;
+    }
 }
 
 function clearList() {
-    timeoutIDS.forEach((id) => {
-        window.clearTimeout(id);
-    });
     emoteList.textContent = '';
 }
