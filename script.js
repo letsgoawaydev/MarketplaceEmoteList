@@ -72,11 +72,9 @@ function sort(type, descending) {
 
     document.getElementById("total_emotes").innerText = totalText;
 
-    // clearList();
     const shownUUIDs = [];
     sorted.forEach((emote, i) => {
         shownUUIDs.push(emote.uuid);
-        // emoteList.appendChild(emote.element);
         emote.element.style.display = "";
         emote.element.style.order = i;
     });
