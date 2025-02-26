@@ -2,7 +2,13 @@
 let emotes = {};
 
 fetch("https://cdn.jsdelivr.net/gh/GeyserExtras/EmoteExtractor@refs/heads/main/emotes/en_US.json").then((r) => r.json()).then((data) => {
-    emotes = data;
+    emotes = data
+
+    for (const emote of Object.keys(emotes)) {
+        emotes[emote].uuid = emote;
+        emotes[emote].element = addEmote(emotes[emote]);
+    }
+
     sort();
 });
 
@@ -49,10 +55,7 @@ function sort(type, descending) {
 
     let sorted = [];
     Object.keys(emotes).forEach((key) => {
-        let emote = emotes[key];
-        emote.uuid = key;
-
-        sorted.push(emote);
+        sorted.push(emotes[key]);
     });
 
     sorted = sortArray(type, sorted, descending);
@@ -69,9 +72,19 @@ function sort(type, descending) {
 
     document.getElementById("total_emotes").innerText = totalText;
 
-    clearList();
+    // clearList();
+    const shownUUIDs = [];
     sorted.forEach((emote, i) => {
-        addEmote(emote.uuid, emote, i);
+        shownUUIDs.push(emote.uuid);
+        // emoteList.appendChild(emote.element);
+        emote.element.style.display = "";
+        emote.element.style.order = i;
+    });
+
+    Object.keys(emotes).forEach((key) => {
+        if (!shownUUIDs.includes(key)) {
+            emotes[key].element.style.display = "none";
+        }
     });
 }
 
@@ -227,7 +240,7 @@ function getRarityAsNumber(rarity) {
     }
 }
 
-function addEmote(uuid, emote, i) {
+function addEmote(emote) {
     // Copy basic emote placeholder
     let display = document.getElementById("uuid").cloneNode(true);
 
@@ -254,7 +267,7 @@ function addEmote(uuid, emote, i) {
         display.addEventListener("click", (ev) => {
             display.querySelector(".emote_overlay").classList.add("blur_overlay");
 
-            let promise = navigator.clipboard.writeText(uuid);
+            let promise = navigator.clipboard.writeText(emote.uuid);
             promise.catch((error) => {
                 display.querySelector(".clipboard").innerHTML = "&#x274e;";
                 display.querySelector(".copy_text").innerText = "Error!";
@@ -271,12 +284,14 @@ function addEmote(uuid, emote, i) {
 
         display.addEventListener("contextmenu", (ev) => {
             ev.preventDefault();
-            window.location.href = "minecraft://showDressingRoomOffer?offerID=" + uuid + "/"
+            window.location.href = "minecraft://showDressingRoomOffer?offerID=" + emote.uuid + "/"
         })
+
+        display.id = emote.uuid;
 
         emoteList.appendChild(display);
 
-        display.id = uuid;
+        return display;
     }
 }
 
