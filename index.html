@@ -9,79 +9,80 @@
 </head>
 
 <body>
-    <!-- SVG for Disabling Font Smoothing -->
-    <svg class="offscreen" width="0" height="0" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-            <filter id="crispify">
-                <feComponentTransfer>
-                    <feFuncA type="table" tableValues="0 0 0 1" />
-                </feComponentTransfer>
-            </filter>
-        </defs>
-    </svg>
 
-    <div id="header">
-        <p class="antialias" id="title">Marketplace Emote List</p>
-        <p class="antialias" id="subtitle">for Minecraft: Bedrock Edition</p>
-        <p class="antialias">Made by <a href="https://github.com/letsgoawaydev">LetsGoAway</a></p>
-        <a href="?creator=Minecraft">Show Official Emotes</a>
-        <br><br>
-    </div>
-
-    <br><br>
-
-    <div id="detailed_search">
-        <div id="sort_panel">
-            <label for="sort">Sort by: </label>
-
-            <select name="sort" id="sort">
-                <option value="name">Name</option>
-                <option value="creator">Creator</option>
-                <option value="price">Price</option>
-                <option value="rarity">Rarity</option>
-                <option value="uuid">UUID</option>
-                <option value="search">Search</option>
-            </select>
-
-            <input type="checkbox" id="descending"></input>
-
-            <br /><br />
-
-            <input type="text" id="search" style="display:none"></text>
-
-            <p class="antialias align-center" id="total_emotes">Total Emotes: Loading...</p>
-
-            <br /><br />
-
-
+    <header>
+        <div id="header">
+            <p class="antialias" id="title">Marketplace Emote List</p>
+            <p class="antialias" id="subtitle">for Minecraft: Bedrock Edition</p>
+            <p class="antialias">Made by <a href="https://github.com/letsgoawaydev">LetsGoAway</a></p>
+            <a href="?creator=Minecraft">Show Official Emotes</a>
+            <br><br>
         </div>
-    </div>
+
+        <br><br>
+
+        <div id="detailed_search">
+            <div id="sort_panel">
+                <label for="sort">Sort by: </label>
+
+                <select name="sort" id="sort">
+                    <option value="name">Name</option>
+                    <option value="creator">Creator</option>
+                    <option value="price">Price</option>
+                    <option value="rarity">Rarity</option>
+                    <option value="uuid">UUID</option>
+                    <option value="search">Search</option>
+                </select>
+
+                <input type="checkbox" id="descending"></input>
+
+                <br /><br />
+
+                <input type="text" id="search" style="display:none"></text>
+
+                <p class="antialias align-center" id="total_emotes">Total Emotes: Loading...</p>
+
+                <br /><br />
+            </div>
+        </div>
+    </header>
+
+    <main id="emote_list">
+    </main>
+
+    <footer>
+        <p>You can right-click an emote to open it in game. (If it's still available on the Marketplace.)</p>
+    </footer>
 
 
-    <div id="to_copy">
+    <div class="hidden">
+        <!-- SVG for Disabling Font Smoothing -->
+        <svg width="0" height="0" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <filter id="crispify">
+                    <feComponentTransfer>
+                        <feFuncA type="table" tableValues="0 0 0 1" />
+                    </feComponentTransfer>
+                </filter>
+            </defs>
+        </svg>
+
         <div id="uuid" class="emote">
-            <img class="emote_image"></img>
+            <img class="emote_image" />
             <div class="emote_details">
                 <div class="antialias emote_name">Emote Name</div>
-                <div class="antialias emote_detail emote_creator">👤 Minecraft</div>
+                <div class="antialias emote_detail emote_creator">&#x1F464; Minecraft</div>
                 <div class="price">
                     <div class="antialias emote_detail emote_price">300</div>
-                    <img class="detail_coin" src="minecoin.png"></img>
+                    <img class="detail_coin" src="minecoin.png" />
                 </div>
                 <div class="emote_subdetail emote_uuid">UUID: id</div>
             </div>
             <div class="emote_overlay">
-                <div class="clipboard">🗐</div>
+                <div class="clipboard">&#x1f5d0;</div>
                 <div class="copy_text">Copy UUID</div>
             </div>
         </div>
-    </div>
-
-    <div id="emote_list">
-    </div>
-
-    <div id="footer">
-        <p>You can right-click an emote to open it in game. (If it's still available on the Marketplace.)</p>
     </div>
 
     <script src="script.js"></script>
