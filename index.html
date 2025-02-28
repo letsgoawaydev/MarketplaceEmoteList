@@ -14,16 +14,14 @@
         <div id="header">
             <p class="antialias" id="title">Marketplace Emote List</p>
             <p class="antialias" id="subtitle">for Minecraft: Bedrock Edition</p>
-            <p class="antialias">Made by <a href="https://github.com/letsgoawaydev">LetsGoAway</a></p>
-            <a href="?creator=Minecraft">Show Official Emotes</a>
-            <br><br>
+            <p class="antialias" id="creator">Made by <a href="https://github.com/letsgoawaydev">LetsGoAway</a></p>
         </div>
-
-        <br><br>
 
         <div id="detailed_search">
             <div id="sort_panel">
-                <label for="sort">Sort by: </label>
+                <p class="antialias align-center" id="total_emotes">Total Emotes: Loading...</p>
+
+                <label for="sort" class="antialias">Sort by: </label>
 
                 <select name="sort" id="sort">
                     <option value="name">Name</option>
@@ -35,14 +33,32 @@
                 </select>
 
                 <input type="checkbox" id="descending"></input>
+            </div>
+            <div id="filter_panel">
+                <p>Filter</p>
 
-                <br /><br />
+                <label for="creator_filter" class="antialias">Creator: </label>
 
+                <select name="creator_filter" id="creator_filter">
+                    <option value="@">Anyone</option>
+                    <option value="Minecraft">Minecraft</option>
+                </select>
+                <br>
+                <br>
+                <label for="rarity_filter" class="antialias">Rarity: </label>
+
+                <select name="rarity_filter" id="rarity_filter">
+                    <option value="@">Any</option>
+                    <option value="common">Common</option>
+                    <option value="uncommon">Uncommon</option>
+                    <option value="rare">Rare</option>
+                    <option value="epic">Epic</option>
+                    <option value="legendary">Legendary</option>
+
+                </select>
+            </div>
+            <div id="search_panel"> 
                 <input type="text" id="search" style="display:none"></text>
-
-                <p class="antialias align-center" id="total_emotes">Total Emotes: Loading...</p>
-
-                <br /><br />
             </div>
         </div>
     </header>

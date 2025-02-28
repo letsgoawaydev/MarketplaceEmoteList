@@ -1,39 +1,102 @@
 /* global fetch */
 let emotes = {};
 
-fetch("https://cdn.jsdelivr.net/gh/GeyserExtras/EmoteExtractor@refs/heads/main/emotes/en_US.json").then((r) => r.json()).then((data) => {
-    emotes = data
-
-    for (const emote of Object.keys(emotes)) {
-        emotes[emote].uuid = emote;
-        emotes[emote].element = addEmote(emotes[emote]);
-    }
-
-    sort();
-});
-
 let emoteList = document.getElementById("emote_list");
 
 let descendingBox = document.getElementById("descending");
 let search = document.getElementById("search");
 let sortElem = document.getElementById("sort");
 
-descendingBox.addEventListener("change", (ev) => {
+let creatorFilter = document.getElementById("creator_filter");
+let rarityFilter = document.getElementById("rarity_filter");
+
+
+let params = new URLSearchParams(window.location.search);
+
+creatorFilter.value = params.get("creator") == null ? "@" : params.get("creator");
+rarityFilter.value = params.get("rarity") == null ? "@" : params.get("rarity");
+
+let hash = new URLSearchParams(window.location.hash.substring(1));
+
+sortElem.value = hash.get("sort") == null ? "name" : hash.get("sort");
+if (sortElem.value == "search") {
+    search.style.display = "block";
+    search.value = hash.get("q") == null ? "" : hash.get("q");
+} else {
+    search.style.display = "none";
+}
+descendingBox.checked = hash.get("descending") == "true" ? true : false;
+
+
+fetch("https://cdn.jsdelivr.net/gh/GeyserExtras/EmoteExtractor@refs/heads/main/emotes/en_US.json").then((r) => r.json()).then((data) => {
+    emotes = data
+
+    let creators = [];
+
+    for (const emote of Object.keys(emotes)) {
+        emotes[emote].uuid = emote;
+        emotes[emote].element = addEmote(emotes[emote]);
+
+        let creator = emotes[emote].creator;
+        if (creator != "Minecraft" && creators.indexOf(creator) == -1) {
+            creators.push(creator);
+        }
+    }
+
+    creators.sort((a, b) => a.localeCompare(b)).forEach((value) => {
+        creatorFilter.appendChild(new Option(value, value, false, new URLSearchParams(window.location.search).get("creator") == value));
+    });
+
     sort(sortElem.value, descendingBox.checked);
 });
 
+creatorFilter.addEventListener("change", (ev) => {
+    var params = new URLSearchParams(window.location.search);
+    if (creatorFilter.value == "@") {
+        params.delete("creator");
+    }
+    else {
+        params.set("creator", creatorFilter.value);
+    }
+    window.location.search = "?" + params.toString();
+});
+
+rarityFilter.addEventListener("change", (ev) => {
+    var params = new URLSearchParams(window.location.search);
+    if (rarityFilter.value == "@") {
+        params.delete("rarity");
+    }
+    else {
+        params.set("rarity", rarityFilter.value);
+    }
+    window.location.search = "?" + params.toString();
+});
+
+descendingBox.addEventListener("change", (ev) => {
+    updateDescendingBox();
+    sort(sortElem.value, descendingBox.checked);
+});
+function updateDescendingBox() {
+    hash.set("descending", descendingBox.checked + "")
+    window.location.hash = "#" + hash.toString();
+}
+
 sortElem.addEventListener("change", (ev) => {
+    hash.set("sort", sortElem.value);
     if (sortElem.value == "search") {
         search.style.display = "block";
         descendingBox.checked = true;
+        updateDescendingBox();
     } else {
         search.value = "";
         search.style.display = "none";
         descendingBox.checked = false;
+        updateDescendingBox();
+        hash.delete("q");
     }
-    sort(sortElem.value, descendingBox.checked)
+    window.location.hash = "#" + hash.toString();
+    sort(sortElem.value, descendingBox.checked);
 });
-
 
 search.addEventListener("keyup", (ev) => {
     sort(sortElem.value, descendingBox.checked);
@@ -41,6 +104,13 @@ search.addEventListener("keyup", (ev) => {
 
 search.addEventListener("change", (ev) => {
     sort(sortElem.value, descendingBox.checked);
+    if (search.value == "") {
+        hash.delete("q");
+    }
+    else {
+        hash.set("q", search.value);
+    }
+    window.location.hash = "#" + hash.toString();
 });
 
 function sort(type, descending) {
@@ -100,7 +170,6 @@ function sortArray(type, sorted, descending) {
         return sorted.sort((a, b) => d * a.creator.localeCompare(b.creator));
     }
     else if (type == "price") {
-        
         // Do a few sorts before hand to make it look neater
         sorted = sortArray("name", sorted, descending);
         // Have to do this instead of sortArray("rarity") to avoid a call stack error as price sort is called there
@@ -119,26 +188,20 @@ function sortArray(type, sorted, descending) {
         sorted = sorted.sort((a, b) => d * (getSearchScore(a) - getSearchScore(b)));
         return sorted.filter((a) => getSearchScore(a) != 0)
     }
+    return sorted;
 }
 
 function getURLParamsStatus(emote) {
-    let params = new URLSearchParams(window.location.search);
+    if (params.get("creator") != null && emote.creator != params.get("creator")) {
+        return false;
+    }
 
-    for (val of params.entries()) {
-        let key = val[0];
-        let value = val[1];
+    if (params.get("rarity") != null && emote.rarity != params.get("rarity")) {
+        return false;
+    }
 
-        if (key == "creator" && emote.creator != value) {
-            return false;
-        }
-
-        if (key == "rarity" && emote.rarity != value) {
-            return false;
-        }
-
-        if (key == "uuid" && emote.uuid != value) {
-            return false;
-        }
+    if (params.get("uuid") != null && emote.uuid != params.get("uuid")) {
+        return false;
     }
     return true;
 }
@@ -155,16 +218,24 @@ function getSearchScore(emote) {
         score += 999;
     }
 
-    score += getSearchTextScore(emote.name, emote);
-    score += getSearchTextScore(emote.creator, emote);
+    score += getSearchTextScore(emote.name, emote, search.value);
+    score += getSearchTextScore(emote.creator, emote, search.value);
+
+    search.value.split(" ").forEach((string) => {
+        if (string != '' && string != ' ') {
+            score += getSearchTextScore(emote.name, emote, string);
+            score += getSearchTextScore(emote.creator, emote, string);
+        }
+    });
+
 
     return score;
 }
 
 
-function getSearchTextScore(text, emote) {
+function getSearchTextScore(text, emote, query) {
     let score = 0;
-    if (text == search.value) {
+    if (text == query) {
         score += 1;
 
         // Prefer official emotes
@@ -173,7 +244,7 @@ function getSearchTextScore(text, emote) {
         }
     }
 
-    if (text.toLowerCase() == search.value.toLowerCase()) {
+    if (text.toLowerCase() == query.toLowerCase()) {
         score += 1;
 
         // Prefer official emotes
@@ -182,7 +253,7 @@ function getSearchTextScore(text, emote) {
         }
     }
 
-    if (text.startsWith(search.value)) {
+    if (text.startsWith(query)) {
         score += 1;
 
         // Prefer official emotes
@@ -191,7 +262,7 @@ function getSearchTextScore(text, emote) {
         }
     }
 
-    if (text.toLowerCase().startsWith(search.value.toLowerCase())) {
+    if (text.toLowerCase().startsWith(query.toLowerCase())) {
         score += 1;
 
         // Prefer official emotes
@@ -200,7 +271,7 @@ function getSearchTextScore(text, emote) {
         }
     }
 
-    if (text.includes(search.value)) {
+    if (text.includes(query)) {
         score += 1;
 
         // Prefer official emotes
@@ -209,7 +280,7 @@ function getSearchTextScore(text, emote) {
         }
     }
 
-    if (text.toLowerCase().includes(search.value.toLowerCase())) {
+    if (text.toLowerCase().includes(query.toLowerCase())) {
         score += 1;
 
         // Prefer official emotes
@@ -286,6 +357,7 @@ function addEmote(emote) {
         })
 
         display.id = emote.uuid;
+
 
         emoteList.appendChild(display);
 
