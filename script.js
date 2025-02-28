@@ -240,7 +240,7 @@ function getRarityAsNumber(rarity) {
 
 function addEmote(emote) {
     // Copy basic emote placeholder
-    let display = document.getElementById("uuid").cloneNode(true);
+    let display = document.getElementById("template_emote").cloneNode(true);
 
     // This is solely just to get intellisense to function lmao!!
     if (display instanceof HTMLElement) {
@@ -250,7 +250,7 @@ function addEmote(emote) {
         display.querySelector(".emote_name").innerText = emote.name;
         display.querySelector(".emote_creator").innerHTML = "&#x1F464; " + emote.creator;
         display.querySelector(".emote_price").innerText = emote.price == 0 ? "FREE" : (emote.price == undefined ? "???" : emote.price);
-        display.querySelector(".emote_uuid").innerText = "UUID: " + uuid;
+        display.querySelector(".emote_uuid").innerText = "UUID: " + emote.uuid;
 
         display.addEventListener("mouseover", (ev) => {
             display.querySelector(".emote_overlay").classList.add("blur_overlay");
